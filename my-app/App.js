@@ -14,6 +14,9 @@ import StudentDetailScreen from './screens/StudentDetailScreen';
 import AddStudentScreen from './screens/AddStudentScreen';
 import ScheduleScreen from './screens/ScheduleScreen';          
 import ScheduleDetailScreen from './screens/ScheduleDetailScreen'; 
+import ProfileScreen from './screens/ProfileScreen';
+import TranscriptScreen from './screens/TranscriptScreen';
+import ReportScreen from './screens/ReportScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -42,6 +45,7 @@ function RootNavigator() {
   // Nếu đã đăng nhập → hiển thị toàn bộ app
   return (
     <Stack.Navigator>
+      {/* Home */}
       <Stack.Screen 
         name="Home" 
         component={HomeScreen} 
@@ -55,18 +59,11 @@ function RootNavigator() {
         })}
       />
 
-      {/* Màn hình Sinh viên */}
+      {/* Sinh viên */}
       <Stack.Screen 
         name="StudentList" 
         component={StudentListScreen} 
-        options={({ navigation }) => ({
-          title: 'Students',
-          headerRight: () => (
-            <TouchableOpacity onPress={() => navigation.navigate('AddStudent')}>
-              <Text style={{ marginRight: 15, fontSize: 24, fontWeight: 'bold', color: '#007AFF' }}>+</Text>
-            </TouchableOpacity>
-          ),
-        })}
+        options={{ title: 'Students' }}
       />
       <Stack.Screen 
         name="StudentDetail" 
@@ -79,7 +76,7 @@ function RootNavigator() {
         options={{ title: 'Add Student' }} 
       />
 
-      {/* Màn hình Lịch học */}
+      {/* Lịch học */}
       <Stack.Screen 
         name="Schedule" 
         component={ScheduleScreen} 
@@ -89,6 +86,23 @@ function RootNavigator() {
         name="ScheduleDetail" 
         component={ScheduleDetailScreen} 
         options={{ title: 'Chi tiết lịch học' }} 
+      />
+
+      {/* Các màn hình khác */}
+      <Stack.Screen 
+        name="Profile" 
+        component={ProfileScreen} 
+        options={{ title: 'Thông tin cá nhân' }} 
+      />
+      <Stack.Screen 
+        name="Transcript" 
+        component={TranscriptScreen} 
+        options={{ title: 'Bảng điểm' }} 
+      />
+      <Stack.Screen 
+        name="Report" 
+        component={ReportScreen} 
+        options={{ title: 'Báo cáo học tập' }} 
       />
     </Stack.Navigator>
   );

@@ -25,6 +25,7 @@ export default function HomeScreen({ navigation }) {
     { id: 5, title: "Lịch Học", icon: "calendar-outline", screen: "Schedule" },
     { id: 6, title: "Trao đổi", icon: "chatbubble-outline", screen: "Chat" },
     { id: 7, title: "Báo Cáo Khác", icon: "document-attach-outline", screen: "OtherReport" },
+    { id: 8, title: "Bảng Điểm", icon: "school-outline", screen: "Transcript" },
   ];
 
   // Lọc theo từ khóa tìm kiếm
@@ -105,17 +106,26 @@ export default function HomeScreen({ navigation }) {
                   <Ionicons name="book-outline" size={28} color="#007AFF" />
                   <Text style={styles.iconText}>Danh sách SV</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.iconBox}>
+                <TouchableOpacity
+                  style={styles.iconBox}
+                  onPress={() => navigation.navigate("Profile")}
+                >
                   <Ionicons name="person-outline" size={28} color="#007AFF" />
                   <Text style={styles.iconText}>Hồ Sơ</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.iconBox}>
+                <TouchableOpacity
+                  style={styles.iconBox}
+                  onPress={() => navigation.navigate("Report")}
+                >
                   <Ionicons name="document-text-outline" size={28} color="#007AFF" />
                   <Text style={styles.iconText}>Báo Cáo</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.iconBox}>
-                  <Ionicons name="create-outline" size={28} color="#007AFF" />
-                  <Text style={styles.iconText}>Chỉnh Sửa</Text>
+                <TouchableOpacity
+                  style={styles.iconBox}
+                  onPress={() => navigation.navigate("Transcript")}
+                >
+                  <Ionicons name="school-outline" size={28} color="#007AFF" />
+                  <Text style={styles.iconText}>Bảng Điểm</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -131,13 +141,19 @@ export default function HomeScreen({ navigation }) {
                   <Ionicons name="calendar-outline" size={28} color="#007AFF" />
                   <Text style={styles.iconText}>Lịch Học</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.iconBox}>
+                <TouchableOpacity
+                  style={styles.iconBox}
+                  onPress={() => navigation.navigate("Chat")}
+                >
                   <Ionicons name="chatbubble-outline" size={28} color="#007AFF" />
                   <Text style={styles.iconText}>Trao đổi</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.iconBox}>
+                <TouchableOpacity
+                  style={styles.iconBox}
+                  onPress={() => navigation.navigate("OtherReport")}
+                >
                   <Ionicons name="document-attach-outline" size={28} color="#007AFF" />
-                  <Text style={styles.iconText}>Báo Cáo</Text>
+                  <Text style={styles.iconText}>Báo Cáo Khác</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -165,10 +181,16 @@ export default function HomeScreen({ navigation }) {
         >
           <Ionicons name="add-circle" size={56} color="#007AFF" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => navigation.navigate("Profile")}
+        >
           <Ionicons name="people-outline" size={24} color="#666" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => navigation.navigate("Report")}
+        >
           <Ionicons name="settings-outline" size={24} color="#666" />
         </TouchableOpacity>
       </View>

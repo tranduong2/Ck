@@ -9,17 +9,26 @@ export default function ScheduleDetailScreen() {
     return <Text style={{ padding: 20 }}>Chưa chọn ngày nào</Text>;
   }
 
+  const subjects = schedules[selectedDay] || [];
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>{selectedDay}</Text>
-      {schedules[selectedDay].map((item) => (
-        <View key={item.id} style={styles.card}>
-          <Text style={styles.time}>
-            {item.start} - {item.end}
-          </Text>
-          <Text style={styles.subject}>{item.subject}</Text>
-        </View>
-      ))}
+      {subjects.length === 0 ? (
+        <Text style={styles.empty}>Chưa có môn học nào</Text>
+      ) : (
+        subjects.map((item) => (
+          <View
+            key={`${selectedDay}-${item.subject}-${item.start}-${item.end}`}
+            style={styles.card}
+          >
+            <Text style={styles.time}>
+              {item.start} - {item.end}
+            </Text>
+            <Text style={styles.subject}>{item.subject}</Text>
+          </View>
+        ))
+      )}
     </ScrollView>
   );
 }
@@ -54,5 +63,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginTop: 5,
     color: "#333",
+  },
+  empty: {
+    fontSize: 16,
+    color: "#666",
+    fontStyle: "italic",
   },
 });
