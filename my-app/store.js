@@ -1,25 +1,53 @@
-import { configureStore, createSlice } from "@reduxjs/toolkit";
+// store.js
+import { configureStore, createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+
+// ====================== API THUNKS ======================
+
+// Fetch students từ backend
+export const fetchStudentsAPI = createAsyncThunk(
+  "auth/fetchStudents",
+  async () => {
+    const res = await fetch("https://your-backend.com/api/students");
+    const data = await res.json();
+    return data.students || [];
+  }
+);
+
+// Fetch transcripts
+export const fetchTranscriptsAPI = createAsyncThunk(
+  "transcript/fetchTranscripts",
+  async () => {
+    const res = await fetch("https://your-backend.com/api/transcripts");
+    const data = await res.json();
+    return data.transcripts || {};
+  }
+);
+
+// Fetch reports
+export const fetchReportsAPI = createAsyncThunk(
+  "report/fetchReports",
+  async () => {
+    const res = await fetch("https://your-backend.com/api/reports");
+    const data = await res.json();
+    return data.reports || {};
+  }
+);
+
+// Fetch schedules
+export const fetchSchedulesAPI = createAsyncThunk(
+  "schedule/fetchSchedules",
+  async () => {
+    const res = await fetch("https://your-backend.com/api/schedules");
+    const data = await res.json();
+    return data.schedules || {};
+  }
+);
 
 // ====================== AUTH SLICE ======================
 const initialAuthState = {
   isLoggedIn: false,
   user: null,
-  students: [
-    {
-      id: "72DCHT20030",
-      name: "Nguyễn Phú Xuân Thao",
-      dob: "01/01/2000",
-      address: "Hà Nội",
-      email: "thao@example.com",
-    },
-    {
-      id: "72DCHT20004",
-      name: "Nguyễn Đình Minh",
-      dob: "02/02/2000",
-      address: "Hà Nội",
-      email: "minh@example.com",
-    },
-  ],
+  students: [],
 };
 
 const authSlice = createSlice({
@@ -34,39 +62,28 @@ const authSlice = createSlice({
       state.isLoggedIn = false;
       state.user = null;
     },
-    updateStudent: (state, action) => {
-      const index = state.students.findIndex((s) => s.id === action.payload.id);
-      if (index >= 0) state.students[index] = action.payload;
-    },
-    deleteStudent: (state, action) => {
-      state.students = state.students.filter((s) => s.id !== action.payload);
-    },
     addStudent: (state, action) => {
       state.students.push(action.payload);
     },
+    updateStudent: (state, action) => {
+      const idx = state.students.findIndex(s => s.id === action.payload.id);
+      if (idx >= 0) state.students[idx] = action.payload;
+    },
+    deleteStudent: (state, action) => {
+      state.students = state.students.filter(s => s.id !== action.payload);
+    },
   },
+  extraReducers: (builder) => {
+    builder.addCase(fetchStudentsAPI.fulfilled, (state, action) => {
+      state.students = action.payload;
+    });
+  }
 });
 
-export const { login, logout, updateStudent, deleteStudent, addStudent } =
-  authSlice.actions;
-
 // ====================== TRANSCRIPT SLICE ======================
-const initialTranscriptState = {
-  transcripts: {
-    "72DCHT20030": [
-      { subject: "Lập trình Web", score: 8.5 },
-      { subject: "Cơ sở dữ liệu", score: 7.5 },
-    ],
-    "72DCHT20004": [
-      { subject: "Mạng máy tính", score: 9.0 },
-      { subject: "Lập trình Mobile", score: 8.0 },
-    ],
-  },
-};
-
 const transcriptSlice = createSlice({
   name: "transcript",
-  initialState: initialTranscriptState,
+  initialState: { transcripts: {} },
   reducers: {
     addTranscript: (state, action) => {
       const { studentId, transcript } = action.payload;
@@ -74,28 +91,26 @@ const transcriptSlice = createSlice({
       state.transcripts[studentId].push(transcript);
     },
     updateTranscript: (state, action) => {
-      const { studentId, subject, score } = action.payload;
-      const record = state.transcripts[studentId]?.find(
-        (t) => t.subject === subject
-      );
-      if (record) record.score = score;
+      const { studentId, subject, midterm, final } = action.payload;
+      const record = state.transcripts[studentId]?.find(t => t.subject === subject);
+      if (record) { record.midterm = midterm; record.final = final; }
+    },
+    initTranscript: (state, action) => {
+      const { studentId } = action.payload;
+      if (!state.transcripts[studentId]) state.transcripts[studentId] = [];
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(fetchTranscriptsAPI.fulfilled, (state, action) => {
+      state.transcripts = action.payload;
+    });
+  }
 });
 
-export const { addTranscript, updateTranscript } = transcriptSlice.actions;
-
 // ====================== REPORT SLICE ======================
-const initialReportState = {
-  reports: {
-    "72DCHT20030": "Học tập tốt, cần cải thiện kỹ năng thuyết trình.",
-    "72DCHT20004": "Tích cực tham gia lớp học, có tiềm năng phát triển.",
-  },
-};
-
 const reportSlice = createSlice({
   name: "report",
-  initialState: initialReportState,
+  initialState: { reports: {} },
   reducers: {
     addReport: (state, action) => {
       const { studentId, report } = action.payload;
@@ -106,32 +121,19 @@ const reportSlice = createSlice({
       if (state.reports[studentId]) state.reports[studentId] = report;
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(fetchReportsAPI.fulfilled, (state, action) => {
+      state.reports = action.payload;
+    });
+  }
 });
 
-export const { addReport, updateReport } = reportSlice.actions;
-
 // ====================== SCHEDULE SLICE ======================
-const initialScheduleState = {
-  schedules: {
-    "Thứ 2": [
-      { subject: "Lập trình Web", date: "2025-09-10", time: "08:00" },
-      { subject: "Cơ sở dữ liệu", date: "2025-09-15", time: "13:30" },
-    ],
-    "Thứ 4": [
-      { subject: "Mạng máy tính", date: "2025-09-12", time: "09:00" },
-      { subject: "Lập trình Mobile", date: "2025-09-20", time: "14:00" },
-    ],
-  },
-  selectedDay: null, // 👈 thêm để tránh lỗi selectDay
-};
-
 const scheduleSlice = createSlice({
   name: "schedule",
-  initialState: initialScheduleState,
+  initialState: { schedules: {}, selectedDay: null },
   reducers: {
-    selectDay: (state, action) => {
-      state.selectedDay = action.payload;
-    },
+    selectDay: (state, action) => { state.selectedDay = action.payload; },
     addSchedule: (state, action) => {
       const { studentId, schedule } = action.payload;
       if (!state.schedules[studentId]) state.schedules[studentId] = [];
@@ -139,24 +141,29 @@ const scheduleSlice = createSlice({
     },
     updateSchedule: (state, action) => {
       const { studentId, subject, newSchedule } = action.payload;
-      const index = state.schedules[studentId]?.findIndex(
-        (s) => s.subject === subject
-      );
-      if (index >= 0) state.schedules[studentId][index] = newSchedule;
+      const idx = state.schedules[studentId]?.findIndex(s => s.subject === subject);
+      if (idx >= 0) state.schedules[studentId][idx] = newSchedule;
     },
     deleteSchedule: (state, action) => {
       const { studentId, subject } = action.payload;
-      state.schedules[studentId] = state.schedules[studentId]?.filter(
-        (s) => s.subject !== subject
-      );
+      state.schedules[studentId] = state.schedules[studentId]?.filter(s => s.subject !== subject);
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(fetchSchedulesAPI.fulfilled, (state, action) => {
+      state.schedules = action.payload;
+    });
+  }
 });
 
-export const { selectDay, addSchedule, updateSchedule, deleteSchedule } =
-  scheduleSlice.actions;
+// ====================== EXPORT ACTIONS & STORE ======================
+export const actions = {
+  ...authSlice.actions,
+  ...transcriptSlice.actions,
+  ...reportSlice.actions,
+  ...scheduleSlice.actions,
+};
 
-// ====================== STORE ======================
 export const store = configureStore({
   reducer: {
     auth: authSlice.reducer,

@@ -1,27 +1,61 @@
-import React from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { useSelector, useDispatch } from "react-redux";
+import { setStudents } from "../store";
 
-export default function TranscriptScreen() {
-  const transcripts = useSelector((state) => state.auth.transcripts) || [];
+export default function TranscriptScreen({ navigation }) {
+  const dispatch = useDispatch();
+  const students = useSelector((state) => state.auth.students) || [];
+  const [loading, setLoading] = useState(false);
 
-  const renderItem = ({ item, index }) => (
-    <View style={styles.card}>
-      <Text style={styles.subject}>{item.subject}</Text>
-      <Text style={styles.score}>Điểm: {item.score}</Text>
-    </View>
+  useEffect(() => {
+    const fetchStudents = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("https://your-backend.com/api/students");
+        const data = await res.json();
+        if (res.ok) {
+          dispatch(setStudents(data.students || []));
+        } else {
+          Alert.alert("Lỗi", data.message || "Không lấy được danh sách sinh viên");
+        }
+      } catch (err) {
+        console.log(err);
+        Alert.alert("Lỗi", "Không thể kết nối tới server");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStudents();
+  }, []);
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate("TranscriptDetail", { studentId: item.id })}
+    >
+      <Text style={styles.name}>{item.name}</Text>
+      <Text style={styles.info}>MSSV: {item.id}</Text>
+    </TouchableOpacity>
   );
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#007bff" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>📘 Bảng điểm</Text>
-
-      {transcripts.length === 0 ? (
-        <Text style={styles.empty}>Chưa có dữ liệu bảng điểm</Text>
+      <Text style={styles.title}>Danh sách sinh viên</Text>
+      {students.length === 0 ? (
+        <Text style={styles.empty}>Chưa có dữ liệu sinh viên</Text>
       ) : (
         <FlatList
-          data={transcripts}
-          keyExtractor={(item, index) => item.id || `${item.subject}-${index}`}
+          data={students}
+          keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 20 }}
         />
@@ -44,6 +78,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  subject: { fontSize: 16, fontWeight: "500", marginBottom: 4 },
-  score: { fontSize: 15, color: "#555" },
+  name: { fontSize: 16, fontWeight: "500", marginBottom: 4 },
+  info: { fontSize: 14, color: "#555" },
 });

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch } from "react-redux";
-import { updateStudent, deleteStudent } from "../store";
+import { updateStudent as updateStudentStore, deleteStudent as deleteStudentStore } from "../store";
 
 export default function StudentDetailScreen({ route, navigation }) {
   const { student } = route.params;
@@ -13,20 +13,67 @@ export default function StudentDetailScreen({ route, navigation }) {
   const [address, setAddress] = useState(student.address);
   const [email, setEmail] = useState(student.email);
 
-  const handleUpdate = () => {
-    dispatch(updateStudent({ id: student.id, name, dob, address, email }));
-    Alert.alert("Thành công", "Thông tin đã được cập nhật!");
+  const handleUpdate = async () => {
+    if (!name || !dob || !email) {
+      Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`https://your-backend.com/api/students/${student.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, dob, address, email }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        // Cập nhật store
+        dispatch(updateStudentStore({ id: student.id, name, dob, address, email }));
+        Alert.alert("Thành công", "Thông tin đã được cập nhật!");
+      } else {
+        Alert.alert("Lỗi", data.message || "Cập nhật thất bại");
+      }
+    } catch (err) {
+      console.log(err);
+      Alert.alert("Lỗi", "Không thể kết nối tới server");
+    }
   };
 
   const handleDelete = () => {
-    dispatch(deleteStudent(student.id));
-    Alert.alert("Đã xóa", "Sinh viên đã bị xóa!");
-    navigation.goBack();
+    Alert.alert(
+      "Xác nhận",
+      "Bạn có chắc muốn xóa sinh viên này?",
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "OK",
+          onPress: async () => {
+            try {
+              const res = await fetch(`https://your-backend.com/api/students/${student.id}`, {
+                method: "DELETE",
+              });
+              const data = await res.json();
+
+              if (res.ok) {
+                dispatch(deleteStudentStore(student.id));
+                Alert.alert("Đã xóa", "Sinh viên đã bị xóa!");
+                navigation.goBack();
+              } else {
+                Alert.alert("Lỗi", data.message || "Xóa thất bại");
+              }
+            } catch (err) {
+              console.log(err);
+              Alert.alert("Lỗi", "Không thể kết nối tới server");
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
     <View style={styles.container}>
-      {/* Header iOS */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={28} color="#fff" />

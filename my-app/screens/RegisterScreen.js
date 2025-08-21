@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { useDispatch } from 'react-redux';
+import { actions } from '../store'; // Redux actions bạn đã tạo
 
 export default function RegisterScreen({ navigation }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!username || !password || !confirm) {
       Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ thông tin');
       return;
@@ -17,11 +21,34 @@ export default function RegisterScreen({ navigation }) {
       return;
     }
 
-    // Giả lập đăng ký thành công
-    Alert.alert('Thành công', 'Đăng ký thành công!');
+    setLoading(true);
 
-    // Quay lại màn hình Login
-    navigation.goBack();
+    try {
+      const response = await fetch('https://your-backend.com/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert('Lỗi đăng ký', data.message || 'Đăng ký thất bại');
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Dispatch login để lưu user vào Redux
+      dispatch(actions.login(data.user));
+
+      Alert.alert('Thành công', 'Đăng ký thành công!');
+      // RootNavigator sẽ tự chuyển sang HomeScreen
+    } catch (err) {
+      console.log(err);
+      Alert.alert('Lỗi mạng', 'Không thể kết nối tới server');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,6 +60,7 @@ export default function RegisterScreen({ navigation }) {
         style={styles.input}
         value={username}
         onChangeText={setUsername}
+        autoCapitalize="none"
       />
 
       <TextInput
@@ -51,8 +79,8 @@ export default function RegisterScreen({ navigation }) {
         onChangeText={setConfirm}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.btnText}>Đăng ký</Text>
+      <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Đăng ký</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -65,19 +93,8 @@ export default function RegisterScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 20 },
   title: { fontSize: 24, textAlign: 'center', marginBottom: 20 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginVertical: 10,
-  },
-  button: {
-    backgroundColor: '#4a90e2',
-    padding: 15,
-    borderRadius: 5,
-    marginTop: 10,
-  },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5, padding: 10, marginVertical: 10 },
+  button: { backgroundColor: '#4a90e2', padding: 15, borderRadius: 5, marginTop: 10 },
   btnText: { color: '#fff', textAlign: 'center', fontWeight: 'bold' },
   backButton: { marginTop: 15 },
   backText: { color: '#4a90e2', textAlign: 'center', fontSize: 16 },

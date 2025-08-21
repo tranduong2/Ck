@@ -1,34 +1,51 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { setUser, setStudents } from "../store"; // action redux lưu dữ liệu
 
 export default function HomeScreen({ navigation }) {
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
-  const studentCount = useSelector((state) => state.auth.students.length);
+  const students = useSelector((state) => state.auth.students);
 
   const [search, setSearch] = useState("");
 
-  // Danh sách chức năng trong Home
+  useEffect(() => {
+    // Load dữ liệu user & students từ backend
+    const fetchData = async () => {
+      try {
+        // giả lập API
+        const userRes = await fetch("https://your-backend.com/api/user");
+        const userData = await userRes.json();
+        dispatch(setUser(userData));
+
+        const studentsRes = await fetch("https://your-backend.com/api/students");
+        const studentsData = await studentsRes.json();
+        dispatch(setStudents(studentsData));
+      } catch (err) {
+        console.log("Error fetching data:", err);
+        Alert.alert("Lỗi", "Không thể tải dữ liệu từ server");
+      }
+    };
+
+    fetchData();
+  }, [dispatch]);
+
+  const studentCount = students.length;
+
+  // Danh sách chức năng
   const features = [
     { id: 1, title: "Danh sách SV", icon: "book-outline", screen: "StudentList" },
     { id: 2, title: "Hồ Sơ", icon: "person-outline", screen: "Profile" },
     { id: 3, title: "Báo Cáo", icon: "document-text-outline", screen: "Report" },
-    { id: 4, title: "Chỉnh Sửa", icon: "create-outline", screen: "Edit" },
-    { id: 5, title: "Lịch Học", icon: "calendar-outline", screen: "Schedule" },
+    { id: 4, title: "Chỉnh Sửa", icon: "create-outline", screen: "EditProfile" },
+    { id: 5, title: "Lịch Dạy", icon: "calendar-outline", screen: "Schedule" },
     { id: 6, title: "Trao đổi", icon: "chatbubble-outline", screen: "Chat" },
     { id: 7, title: "Báo Cáo Khác", icon: "document-attach-outline", screen: "OtherReport" },
     { id: 8, title: "Bảng Điểm", icon: "school-outline", screen: "Transcript" },
   ];
 
-  // Lọc theo từ khóa tìm kiếm
   const filteredFeatures = features.filter((item) =>
     item.title.toLowerCase().includes(search.toLowerCase())
   );
@@ -139,7 +156,7 @@ export default function HomeScreen({ navigation }) {
                   onPress={() => navigation.navigate("Schedule")}
                 >
                   <Ionicons name="calendar-outline" size={28} color="#007AFF" />
-                  <Text style={styles.iconText}>Lịch Học</Text>
+                  <Text style={styles.iconText}>Lịch Dạy</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.iconBox}
@@ -183,13 +200,13 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.tabItem}
-          onPress={() => navigation.navigate("Profile")}
+          onPress={() => navigation.navigate("EditProfile")}
         >
           <Ionicons name="people-outline" size={24} color="#666" />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.tabItem}
-          onPress={() => navigation.navigate("Report")}
+          onPress={() => navigation.navigate("Logout")}
         >
           <Ionicons name="settings-outline" size={24} color="#666" />
         </TouchableOpacity>

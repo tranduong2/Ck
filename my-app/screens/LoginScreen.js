@@ -1,24 +1,48 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { login } from '../authSlice'; // import action login
+import { actions } from '../store'; // dùng store bạn đã tạo
 
 export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!username || !password) {
       Alert.alert("Lỗi", "Vui lòng nhập đầy đủ tài khoản và mật khẩu");
       return;
     }
 
-    // ✅ Dispatch login, lưu user là object
-    dispatch(login({ username })); // authSlice sẽ lưu user = { username: ... }
+    setLoading(true);
 
-    // ❌ Không cần navigation.replace("Home")
-    // RootNavigator sẽ tự render HomeScreen khi isLoggedIn = true
+    try {
+      // Gọi API backend
+      const response = await fetch('https://your-backend.com/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert("Lỗi đăng nhập", data.message || "Tên đăng nhập hoặc mật khẩu không đúng");
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Dispatch login để lưu user trong Redux
+      dispatch(actions.login(data.user)); // data.user = { id, name, email, phone, avatar, ... }
+
+      // RootNavigator sẽ tự chuyển sang HomeScreen
+    } catch (err) {
+      console.log(err);
+      Alert.alert("Lỗi mạng", "Không thể kết nối tới server");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -30,6 +54,7 @@ export default function LoginScreen({ navigation }) {
         style={styles.input}
         value={username}
         onChangeText={setUsername}
+        autoCapitalize="none"
       />
 
       <TextInput
@@ -44,8 +69,8 @@ export default function LoginScreen({ navigation }) {
         <Text style={styles.link}>Đăng ký tài khoản</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.btnText}>Đăng nhập</Text>
+      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Đăng nhập</Text>}
       </TouchableOpacity>
     </View>
   );
